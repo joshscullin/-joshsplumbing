@@ -1,0 +1,30 @@
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor temp files
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env*.local
+
+# Claude Code local settings (machine-specific, not project-specific)
+.claude/settings.local.json
+.claude/memory/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependency folders (if you ever add Node packages)
+node_modules/
+
+# Build output (if you ever add a build step)
+dist/
+build/

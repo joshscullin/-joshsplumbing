@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<!--
+  LEARNING: <!DOCTYPE html> tells the browser this is modern HTML5.
+  Without it, browsers enter "quirks mode" and render inconsistently across browsers.
+-->
+<html lang="en">
+<!--
+  LEARNING: lang="en" is important for screen readers and SEO.
+  It tells assistive technology what language to use when reading aloud.
+-->
+
+<head>
+  <meta charset="UTF-8" />
+  <!--
+    LEARNING: charset="UTF-8" ensures special characters (é, ™, •) display correctly.
+    Always include this as the very first tag inside <head>.
+  -->
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!--
+    LEARNING: This is the single most important tag for mobile responsiveness.
+    Without it, mobile browsers assume the page is designed for desktop and
+    zoom out to fit — making everything tiny. This tells the browser:
+    "use the device's actual width, at normal zoom."
+  -->
+
+  <title>Josh's Plumbing | Licensed & Insured | Fast Response</title>
+  <!--
+    LEARNING: The <title> appears in browser tabs and search engine results.
+    Front-load the business name, then add descriptive keywords after the pipe.
+  -->
+
+  <!-- Google Fonts — loaded before CSS so fonts are ready when styles apply -->
+  <!--
+    LEARNING: The two links below are how Google Fonts work.
+    The first (preconnect) tells the browser to open a connection to Google's
+    servers early, before the font request is made. This shaves ~100ms off load time.
+    The second actually fetches Oswald (headings) and Inter (body text).
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Our stylesheet — always link CSS in the <head>, never at the bottom -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ============================================================
+    NAVIGATION
+    LEARNING: <nav> is a semantic HTML5 element. Using it instead of
+    <div class="nav"> tells browsers, screen readers, and search engines
+    that this is the site's primary navigation. Semantics matter for
+    accessibility and SEO, not just visual structure.
+  ============================================================ -->
+  <nav class="nav" id="nav">
+    <div class="container nav__inner">
+
+      <!-- Logo as text — no image file required, styled purely in CSS -->
+      <a href="#hero" class="nav__logo" aria-label="Josh's Plumbing - back to top">
+        Josh's <span>Plumbing</span>
+      </a>
+
+      <!-- Desktop nav links -->
+      <!--
+        LEARNING: These links use href="#section-id" — hash links.
+        Clicking them jumps to the element with that id on the same page.
+        JavaScript will intercept these clicks to add smooth scrolling.
+      -->
+      <ul class="nav__links" id="nav-links" role="list">
+        <!--
+          LEARNING: role="list" on <ul> and role="listitem" on <li> is needed
+          because some browsers (Safari + VoiceOver) remove list semantics when
+          CSS sets list-style: none. This restores them for screen readers.
+        -->
+        <li role="listitem"><a href="#services" class="nav__link">Services</a></li>
+        <li role="listitem"><a href="#before-after" class="nav__link">Before &amp; After</a></li>
+        <li role="listitem"><a href="#testimonials" class="nav__link">Reviews</a></li>
+        <li role="listitem"><a href="#contact" class="nav__link">Contact</a></li>
+        <li role="listitem">
+          <a href="tel:5551234567" class="btn btn--accent btn--sm">Call Now</a>
+        </li>
+      </ul>
+
+      <!-- Hamburger button — visible only on mobile -->
+      <!--
+        LEARNING: aria-expanded tells screen readers whether the menu is open or closed.
+        aria-controls points to the element this button controls.
+        aria-label gives the button a text name since it has no visible text.
+        JavaScript will update aria-expanded when the menu opens/closes.
+      -->
+      <button
+        class="nav__hamburger"
+        id="hamburger"
+        aria-expanded="false"
+        aria-controls="nav-links"
+        aria-label="Open navigation menu"
+      >
+        <!--
+          LEARNING: These three <span> elements are the three lines of the hamburger icon.
+          They are styled in CSS to be horizontal bars. No image or icon library needed.
+          CSS transforms will animate them into an X when the menu opens.
+        -->
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+    </div>
+  </nav>
+
+
+  <!-- ============================================================
+    HERO SECTION
+    LEARNING: <section> is another semantic element. Use it for distinct
+    thematic content blocks. Each section should make sense on its own.
+    The id="hero" lets the nav logo link (#hero) scroll back here.
+  ============================================================ -->
+  <section class="hero" id="hero" aria-label="Hero — main introduction">
+    <!--
+      LEARNING: The dark overlay covering the background image is created
+      entirely in CSS using the ::before pseudo-element on .hero.
+      No separate <div> for the overlay needed in the HTML.
+      See style.css for how this works.
+    -->
+
+    <div class="container hero__content">
+
+      <p class="hero__badge">
+        <!--
+          LEARNING: The &#10003; is an HTML entity — a way to write special
+          characters in HTML without pasting the actual symbol.
+          &#10003; = ✓  |  &amp; = &  |  &copy; = ©
+        -->
+        &#10003; Licensed &amp; Insured &nbsp;|&nbsp; Serving the Greater Area Since 2009
+      </p>
+
+      <!--
+        LEARNING: There should be exactly ONE <h1> per page.
+        It is the primary heading — search engines weight it heavily.
+        All other headings use h2, h3, etc. in order (don't skip levels).
+      -->
+      <h1 class="hero__heading">
+        No Leaks.<br />No Nonsense.<br />Done Right.
+      </h1>
+
+      <p class="hero__subheading">
+        Fast response across the metro area. Upfront pricing. Guaranteed workmanship.
+        We answer the phone at midnight because pipe problems don't keep business hours.
+      </p>
+
+      <div class="hero__ctas">
+        <!--
+          LEARNING: href="tel:..." is how you make a phone number a tap-to-call
+          link on mobile devices. The number must be digits only (no spaces/dashes).
+        -->
+        <a href="tel:5551234567" class="btn btn--accent btn--lg">
+          Call (555) 123-4567
+        </a>
+        <a href="#before-after" class="btn btn--outline btn--lg">
+          See Our Work
+        </a>
+      </div>
+
+      <!-- Trust indicators below the CTAs -->
+      <div class="hero__trust">
+        <!-- ★ is &#9733; — a plain Unicode star glyph, not an emoji. No colour, no cartoon. -->
+        <span>&#9733; 4.9 / 5 from 340+ reviews</span>
+        <span>Same-day service available</span>
+        <span>No fix, no fee guarantee</span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+    SERVICES STRIP
+  ============================================================ -->
+  <section class="services" id="services" aria-label="Our services">
+    <div class="container">
+
+      <h2 class="services__heading">What We Fix</h2>
+
+      <!--
+        LEARNING: This list uses CSS Grid with auto-fit + minmax.
+        No media queries needed — the browser figures out how many
+        columns fit. On mobile: 2 cols. Tablet: 3. Desktop: 6.
+        One line of CSS handles all of it. See style.css .services__grid.
+      -->
+      <ul class="services__grid" role="list">
+
+        <li class="service-card" role="listitem">
+          <div class="service-card__icon" aria-hidden="true">
+            <!-- SVG icons are inline so no image file is needed and they scale perfectly -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <h3 class="service-card__title">Emergency<br />Call-Outs</h3>
+        </li>
+
+        <li class="service-card" role="listitem">
+          <div class="service-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+            </svg>
+          </div>
+          <h3 class="service-card__title">Hot Water<br />Systems</h3>
+        </li>
+
+        <li class="service-card" role="listitem">
+          <div class="service-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v4l3 3"/>
+              <path d="M8 12H4M12 16v4"/>
+            </svg>
+          </div>
+          <h3 class="service-card__title">Blocked<br />Drains</h3>
+        </li>
+
+        <li class="service-card" role="listitem">
+          <div class="service-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="service-card__title">Leak<br />Detection</h3>
+        </li>
+
+        <li class="service-card" role="listitem">
+          <div class="service-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+            </svg>
+          </div>
+          <h3 class="service-card__title">Bathroom<br />Renovations</h3>
+        </li>
+
+        <li class="service-card" role="listitem">
+          <div class="service-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <h3 class="service-card__title">Gas<br />Fitting</h3>
+        </li>
+
+      </ul>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+    BEFORE & AFTER
+    LEARNING: The slider technique here works by layering two images.
+    The "after" image sits on top of the "before" with a CSS clip that
+    hides the right portion. JavaScript moves the clip boundary as you drag.
+  ============================================================ -->
+  <section class="before-after" id="before-after" aria-label="Before and after job examples">
+    <div class="container">
+
+      <div class="section-header">
+        <p class="section-label">The Proof is in the Pipes</p>
+        <h2 class="section-heading">Before &amp; After</h2>
+        <p class="section-subheading">Drag the handle to compare. Every job left cleaner than we found it.</p>
+      </div>
+
+      <div class="ba-grid">
+
+        <!-- Before/After Card 1 -->
+        <div class="ba-card">
+          <div class="ba-slider" data-slider>
+            <!--
+              LEARNING: We use placehold.co as stand-in images.
+              In a real project these would be actual job photos.
+              The alt attribute is ALWAYS required on images — it describes
+              the image for screen readers and when images fail to load.
+            -->
+            <img
+              class="ba-img ba-img--before"
+              src="https://placehold.co/700x460/2a1a0e/8B4513?text=BEFORE%0ABurst+Pipe%0ACorroded+%26+Leaking"
+              alt="Before: corroded burst pipe with visible water damage"
+              loading="lazy"
+            />
+            <!--
+              LEARNING: loading="lazy" tells the browser to not download this
+              image until the user is about to scroll to it. Speeds up initial
+              page load significantly for image-heavy pages.
+            -->
+            <img
+              class="ba-img ba-img--after"
+              src="https://placehold.co/700x460/0a2a1a/1A6B3C?text=AFTER%0ANew+Copper+Pipe%0AClean+%26+Sealed"
+              alt="After: new copper pipe, neatly fitted and sealed"
+              loading="lazy"
+            />
+            <div class="ba-handle" aria-hidden="true">
+              <div class="ba-handle__line"></div>
+              <div class="ba-handle__button">
+                <span>&#8592;</span>
+                <span>&#8594;</span>
+              </div>
+              <div class="ba-handle__line"></div>
+            </div>
+            <div class="ba-labels" aria-hidden="true">
+              <span class="ba-label ba-label--before">Before</span>
+              <span class="ba-label ba-label--after">After</span>
+            </div>
+          </div>
+          <div class="ba-card__info">
+            <h3 class="ba-card__title">Burst Pipe — Inner City Terrace</h3>
+            <p class="ba-card__desc">Pinhole leak in 40-year-old copper supply line had soaked the subfloor for weeks without being detected. Pipe replaced, floor dried, damage contained.</p>
+            <ul class="ba-card__stats">
+              <li><strong>Job time:</strong> 4 hours</li>
+              <li><strong>Materials:</strong> 3m Type B copper, fittings</li>
+              <li><strong>Result:</strong> Full water pressure restored</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Before/After Card 2 -->
+        <div class="ba-card">
+          <div class="ba-slider" data-slider>
+            <img
+              class="ba-img ba-img--before"
+              src="https://placehold.co/700x460/1a1a2e/4a4a8a?text=BEFORE%0AOld+Bathroom%0ALeaking+%26+Dated"
+              alt="Before: outdated bathroom with leaking fixtures"
+              loading="lazy"
+            />
+            <img
+              class="ba-img ba-img--after"
+              src="https://placehold.co/700x460/0d1b2a/1A3A5C?text=AFTER%0ANew+Bathroom%0AModern+%26+Sealed"
+              alt="After: renovated bathroom with new fixtures and tiling"
+              loading="lazy"
+            />
+            <div class="ba-handle" aria-hidden="true">
+              <div class="ba-handle__line"></div>
+              <div class="ba-handle__button">
+                <span>&#8592;</span>
+                <span>&#8594;</span>
+              </div>
+              <div class="ba-handle__line"></div>
+            </div>
+            <div class="ba-labels" aria-hidden="true">
+              <span class="ba-label ba-label--before">Before</span>
+              <span class="ba-label ba-label--after">After</span>
+            </div>
+          </div>
+          <div class="ba-card__info">
+            <h3 class="ba-card__title">Full Bathroom Reno — 3-Bedroom House</h3>
+            <p class="ba-card__desc">Full replumb of a 1970s bathroom. Old galvanised steel replaced with copper, new waste and storm connections, new shower and vanity rough-in.</p>
+            <ul class="ba-card__stats">
+              <li><strong>Job time:</strong> 3 days</li>
+              <li><strong>Materials:</strong> Full copper replumb, new waste lines</li>
+              <li><strong>Result:</strong> 30-year warranty on all pipework</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Before/After Card 3 -->
+        <div class="ba-card">
+          <div class="ba-slider" data-slider>
+            <img
+              class="ba-img ba-img--before"
+              src="https://placehold.co/700x460/2a1a1a/8B3333?text=BEFORE%0ARusted+Hot+Water%0ANo+Hot+Water"
+              alt="Before: rusted old hot water system, non-functional"
+              loading="lazy"
+            />
+            <img
+              class="ba-img ba-img--after"
+              src="https://placehold.co/700x460/1a2a1a/3A6B1A?text=AFTER%0ANew+Heat+Pump%0AHot+Water+Restored"
+              alt="After: new heat pump hot water system installed"
+              loading="lazy"
+            />
+            <div class="ba-handle" aria-hidden="true">
+              <div class="ba-handle__line"></div>
+              <div class="ba-handle__button">
+                <span>&#8592;</span>
+                <span>&#8594;</span>
+              </div>
+              <div class="ba-handle__line"></div>
+            </div>
+            <div class="ba-labels" aria-hidden="true">
+              <span class="ba-label ba-label--before">Before</span>
+              <span class="ba-label ba-label--after">After</span>
+            </div>
+          </div>
+          <div class="ba-card__info">
+            <h3 class="ba-card__title">Hot Water System Replacement</h3>
+            <p class="ba-card__desc">14-year-old storage tank had corroded internally. Replaced same-day with a heat pump unit — 65% cheaper to run than the old electric system.</p>
+            <ul class="ba-card__stats">
+              <li><strong>Job time:</strong> Half day</li>
+              <li><strong>Materials:</strong> 250L heat pump HWS</li>
+              <li><strong>Result:</strong> Running cost dropped $600/year</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+    TESTIMONIALS
+  ============================================================ -->
+  <section class="testimonials" id="testimonials" aria-label="Customer reviews">
+    <div class="container">
+
+      <div class="section-header">
+        <p class="section-label">Don't Take Our Word For It</p>
+        <h2 class="section-heading">What Customers Say</h2>
+      </div>
+
+      <!--
+        LEARNING: CSS Grid with auto-fit/minmax handles this entire layout.
+        No JavaScript, no media queries — one CSS rule makes this responsive.
+        Cards naturally reflow from 1 → 2 → 4 columns as the screen widens.
+      -->
+      <div class="testimonials__grid">
+
+        <article class="testimonial-card animate-on-scroll">
+          <!--
+            LEARNING: <article> is used for independently meaningful content —
+            a review stands alone and makes sense without the rest of the page.
+            Compare to <section> which groups related content.
+          -->
+          <div class="testimonial-card__header">
+            <div class="testimonial-card__avatar" aria-hidden="true">SM</div>
+            <div>
+              <p class="testimonial-card__name">Sarah M.</p>
+              <p class="testimonial-card__location">Annandale</p>
+            </div>
+            <!--
+              LEARNING: aria-label on the stars div provides an accessible
+              text alternative. "5 stars" is more useful to a screen reader
+              than "★★★★★".
+            -->
+            <div class="testimonial-card__stars" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          </div>
+          <blockquote class="testimonial-card__quote">
+            "Pipe burst under the kitchen sink at 11pm. Josh answered on the second ring, was at my door within 45 minutes, and had it fixed before midnight. The kitchen was cleaner when he left than when he arrived. Absolute legend."
+          </blockquote>
+          <p class="testimonial-card__service">Emergency Burst Pipe Repair</p>
+        </article>
+
+        <article class="testimonial-card animate-on-scroll">
+          <div class="testimonial-card__header">
+            <div class="testimonial-card__avatar" aria-hidden="true">MT</div>
+            <div>
+              <p class="testimonial-card__name">Marcus T.</p>
+              <p class="testimonial-card__location">Newtown</p>
+            </div>
+            <div class="testimonial-card__stars" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          </div>
+          <blockquote class="testimonial-card__quote">
+            "Quoted three plumbers for a blocked drain. Josh was the only one who explained what was actually causing it and gave me a real fix instead of just jetting it through. Six months later, zero issues."
+          </blockquote>
+          <p class="testimonial-card__service">Blocked Drain — Root Intrusion</p>
+        </article>
+
+        <article class="testimonial-card animate-on-scroll">
+          <div class="testimonial-card__header">
+            <div class="testimonial-card__avatar" aria-hidden="true">DK</div>
+            <div>
+              <p class="testimonial-card__name">The Kowalski Family</p>
+              <p class="testimonial-card__location">Marrickville</p>
+            </div>
+            <div class="testimonial-card__stars" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          </div>
+          <blockquote class="testimonial-card__quote">
+            "New hot water system, new laundry connections, and sorted out the dodgy hot/cold mix-up we'd lived with for four years. Upfront quote, stuck to it exactly. That alone is worth five stars."
+          </blockquote>
+          <p class="testimonial-card__service">Hot Water System &amp; Laundry Fit-Out</p>
+        </article>
+
+        <article class="testimonial-card animate-on-scroll">
+          <div class="testimonial-card__header">
+            <div class="testimonial-card__avatar" aria-hidden="true">DR</div>
+            <div>
+              <p class="testimonial-card__name">Donna R.</p>
+              <p class="testimonial-card__location">Leichhardt</p>
+            </div>
+            <div class="testimonial-card__stars" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          </div>
+          <blockquote class="testimonial-card__quote">
+            "Full bathroom renovation — Josh coordinated everything around the tiler and electrician without me having to manage anyone. Came back to check the seals a week later unprompted. Rare to find a tradie who genuinely cares."
+          </blockquote>
+          <p class="testimonial-card__service">Full Bathroom Renovation</p>
+        </article>
+
+      </div>
+
+      <div class="testimonials__badge animate-on-scroll">
+        <span>&#9733; 4.9 average from 340+ verified reviews on Google</span>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+    CALL TO ACTION BANNER
+    LEARNING: This is a deliberate visual "pattern interrupt" — a full-width
+    block of strong accent color that draws the eye after two content-heavy
+    sections. It's designed to convert browsers into callers.
+  ============================================================ -->
+  <section class="cta-banner" aria-label="Call to action">
+    <div class="container cta-banner__inner">
+      <div class="cta-banner__text">
+        <h2 class="cta-banner__heading">Got a Plumbing Problem?</h2>
+        <p class="cta-banner__body">
+          We pick up the phone. We show up on time. We fix it properly.
+          No runaround, no surprise invoices.
+        </p>
+      </div>
+      <div class="cta-banner__actions">
+        <a href="tel:5551234567" class="btn btn--dark btn--lg">
+          Call (555) 123-4567
+        </a>
+        <a href="#contact" class="btn btn--outline-dark btn--lg">
+          Request a Callback
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+    CONTACT / CALLBACK FORM
+  ============================================================ -->
+  <section class="contact" id="contact" aria-label="Contact and callback form">
+    <div class="container contact__inner">
+
+      <!-- Left column: form -->
+      <div class="contact__form-wrap">
+        <div class="section-header section-header--left">
+          <p class="section-label">Get In Touch</p>
+          <h2 class="section-heading">We'll Call You Back</h2>
+          <p class="section-subheading">Fill in your details and we'll call within 2 hours during business hours.</p>
+        </div>
+
+        <!--
+          LEARNING: novalidate stops the browser's built-in validation bubbles
+          so we can use our own custom validation UI in JavaScript.
+          aria-live="polite" on the success message means screen readers will
+          announce it when it appears, without interrupting what they're saying.
+        -->
+        <form class="callback-form" id="callback-form" novalidate>
+
+          <div class="form-group">
+            <!--
+              LEARNING: The <label> for attribute MUST match the input's id.
+              This connects them so clicking the label focuses the input —
+              important for usability and required for accessibility.
+            -->
+            <label for="name" class="form-label">Your Name <span class="required" aria-hidden="true">*</span></label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              class="form-input"
+              placeholder="e.g. Sarah Mitchell"
+              autocomplete="name"
+              required
+            />
+            <!-- Error message hidden by default, shown by JS -->
+            <span class="form-error" id="name-error" role="alert" aria-live="assertive"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="phone" class="form-label">Phone Number <span class="required" aria-hidden="true">*</span></label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              class="form-input"
+              placeholder="e.g. 0412 345 678"
+              autocomplete="tel"
+              required
+            />
+            <span class="form-error" id="phone-error" role="alert" aria-live="assertive"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="service" class="form-label">What's the Issue? <span class="required" aria-hidden="true">*</span></label>
+            <!--
+              LEARNING: <select> creates a dropdown. The first option acts as
+              a placeholder — value="" means it carries no real data, and
+              disabled + selected prevents it from being re-selected after
+              the user has chosen a real option.
+            -->
+            <select id="service" name="service" class="form-input form-select" required>
+              <option value="" disabled selected>Select a service...</option>
+              <option value="emergency">Emergency / Burst Pipe</option>
+              <option value="blocked">Blocked Drain</option>
+              <option value="hot-water">Hot Water System</option>
+              <option value="leak">Leak Detection</option>
+              <option value="bathroom">Bathroom Renovation</option>
+              <option value="gas">Gas Fitting</option>
+              <option value="other">Other / Not Sure</option>
+            </select>
+            <span class="form-error" id="service-error" role="alert" aria-live="assertive"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="message" class="form-label">Any Extra Details? <span class="optional">(optional)</span></label>
+            <textarea
+              id="message"
+              name="message"
+              class="form-input form-textarea"
+              placeholder="e.g. Water is dripping from the ceiling below the upstairs bathroom..."
+              rows="4"
+            ></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--accent btn--lg btn--full">
+            Request Callback &#8594;
+          </button>
+
+        </form>
+
+        <!-- Success state — hidden initially, shown after successful form submission -->
+        <div class="form-success" id="form-success" aria-live="polite" hidden>
+          <div class="form-success__icon" aria-hidden="true">&#10003;</div>
+          <h3 class="form-success__heading">Request Received!</h3>
+          <p class="form-success__body">We'll call you back within 2 hours. If it's an emergency, call us directly on <a href="tel:5551234567">(555) 123-4567</a>.</p>
+        </div>
+
+      </div>
+
+      <!-- Right column: business details -->
+      <div class="contact__details">
+
+        <!--
+          LEARNING: We replaced emoji headings with text-only labels.
+          The CSS .detail-block__heading rule already styles these in accent orange
+          with uppercase tracking — the label needs no icon to look intentional.
+          Less is more: let the typography do the work.
+        -->
+        <div class="detail-block">
+          <h3 class="detail-block__heading">Phone</h3>
+          <a href="tel:5551234567" class="detail-block__value detail-block__link">(555) 123-4567</a>
+          <p class="detail-block__note">Answered 24/7 for emergencies</p>
+        </div>
+
+        <div class="detail-block">
+          <h3 class="detail-block__heading">Hours</h3>
+          <p class="detail-block__value">Mon – Fri: 7am – 6pm</p>
+          <p class="detail-block__value">Saturday: 8am – 4pm</p>
+          <p class="detail-block__note">Emergency callouts: 24/7</p>
+        </div>
+
+        <div class="detail-block">
+          <h3 class="detail-block__heading">Service Area</h3>
+          <p class="detail-block__value">Greater Metro Area</p>
+          <p class="detail-block__note">Annandale · Newtown · Marrickville<br />Leichhardt · Glebe · Balmain · Rozelle</p>
+        </div>
+
+        <div class="detail-block">
+          <h3 class="detail-block__heading">Licence &amp; Insurance</h3>
+          <p class="detail-block__value">Lic No. PL-88421</p>
+          <p class="detail-block__note">Fully insured. $20M public liability.</p>
+        </div>
+
+        <div class="contact__map-placeholder" aria-label="Service area map placeholder">
+          <p>Serving the Inner West &amp; Surrounds</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+    FOOTER
+    LEARNING: <footer> is a semantic element for site-wide footer content.
+    Like <nav> and <header>, it signals to search engines and screen readers
+    what kind of content this is.
+  ============================================================ -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+
+      <div class="footer__brand">
+        <p class="footer__logo">Josh's <span>Plumbing</span></p>
+        <p class="footer__tagline">Licensed. Insured. On time. Every time.</p>
+        <p class="footer__licence">Lic No. PL-88421 &nbsp;|&nbsp; ABN 12 345 678 901</p>
+      </div>
+
+      <nav class="footer__nav" aria-label="Footer navigation">
+        <h4 class="footer__nav-heading">Quick Links</h4>
+        <ul role="list">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#before-after">Before &amp; After</a></li>
+          <li><a href="#testimonials">Reviews</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer__contact">
+        <h4 class="footer__nav-heading">Contact</h4>
+        <a href="tel:5551234567">(555) 123-4567</a>
+        <p>info@joshsplumbing.com.au</p>
+        <p>Greater Metro Area</p>
+      </div>
+
+    </div>
+
+    <div class="footer__bottom">
+      <div class="container">
+        <p>&copy; 2026 Josh's Plumbing. All rights reserved. Website built for educational purposes.</p>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Script loaded at END of body — important! -->
+  <!--
+    LEARNING: JavaScript should be loaded at the bottom of <body>, not in <head>.
+    If you put <script> in the <head>, the browser pauses HTML parsing to download
+    and run the script — before the page elements exist. The script then tries to
+    manipulate elements that haven't been created yet and fails silently.
+    At the bottom of <body>, all HTML exists before the script runs.
+    (The modern alternative is <script defer> in the head — defer queues execution
+    until HTML parsing completes. Both approaches are valid.)
+  -->
+  <script src="main.js"></script>
+
+</body>
+</html>

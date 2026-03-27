@@ -1,0 +1,1563 @@
+/*
+  ================================================================
+  JOSH'S PLUMBING — style.css
+  ================================================================
+
+  FILE STRUCTURE (scroll to each section):
+  1.  CSS Custom Properties (variables)
+  2.  Reset & Base
+  3.  Typography
+  4.  Utility Classes
+  5.  Buttons
+  6.  Navigation
+  7.  Hero
+  8.  Services
+  9.  Before & After
+  10. Testimonials
+  11. CTA Banner
+  12. Contact / Form
+  13. Footer
+  14. Animations
+  15. Media Queries
+
+  LEARNING: Organising CSS into named sections with a table of contents
+  like this makes the file navigable. As CSS files grow, you'll thank
+  yourself for this structure. Use Ctrl+F to jump to section names.
+*/
+
+
+/* ================================================================
+  1. CSS CUSTOM PROPERTIES (VARIABLES)
+  ================================================================
+
+  LEARNING: Custom properties (declared with --name: value) are CSS's
+  version of variables. They:
+  - Live in the :root selector, making them globally available
+  - Can be used anywhere with var(--name)
+  - Cascade and inherit like any other CSS property
+  - Can be updated by JavaScript at runtime
+  - Can be overridden in specific scopes (e.g., inside a dark section)
+
+  The practical benefit: change --color-accent once, it updates
+  everywhere it's used. No find-and-replace across hundreds of lines.
+*/
+
+:root {
+  /* Colour palette */
+  --color-primary:       #1A3A5C;   /* Midnight Pipe Blue */
+  --color-accent:        #C75B1A;   /* Torch Flame Orange */
+  --color-surface-light: #F4EFE8;   /* Drop Cloth Cream */
+  --color-surface-dark:  #1C1C1E;   /* Pipe Iron */
+  --color-neutral:       #6B7280;   /* Concrete Grey */
+  --color-brass:         #D4A853;   /* Brass */
+  --color-text:          #1C1C1E;
+  --color-text-muted:    #6B7280;
+  --color-border:        #E2DAD0;
+
+  /* Typography */
+  --font-heading: 'Oswald', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+
+  /*
+    LEARNING: rem units are relative to the root font size (usually 16px).
+    1rem = 16px, 1.5rem = 24px, etc.
+    Using rem means font sizes scale if users change browser default font size
+    (common accessibility need). px would override their preference.
+  */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+  --text-6xl:  3.75rem;
+
+  /* Spacing scale */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Layout */
+  --max-width: 1200px;
+  --nav-height: 68px;
+
+  /* Effects */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.10);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.16);
+  --transition-fast: 120ms ease-in-out;
+  --transition-base: 220ms ease-in-out;
+  --transition-slow: 400ms ease-in-out;
+}
+
+
+/* ================================================================
+  2. RESET & BASE
+  ================================================================
+
+  LEARNING: Browsers apply their own default styles (margins on <h1>,
+  padding on <ul>, etc.) that differ between Chrome, Firefox, and Safari.
+  A CSS reset removes or normalises these inconsistencies so you start
+  from a predictable baseline.
+
+  box-sizing: border-box is the most important reset. By default (content-box),
+  if you set width: 300px and padding: 20px, the element is actually 340px wide.
+  border-box includes padding and border inside the declared width, which is
+  almost always what you want and expect.
+*/
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /*
+    LEARNING: scroll-behavior: smooth makes all anchor link navigation (#section)
+    animate smoothly instead of jumping. This is the CSS-only approach.
+    Our JavaScript adds offset handling for the sticky nav on top of this.
+  */
+  scroll-behavior: smooth;
+  /* Prevent layout shift when scrollbar appears/disappears */
+  scrollbar-gutter: stable;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px; /* Explicit fallback — var() fails silently if :root hasn't parsed yet */
+  line-height: 1.6;
+  color: #1C1C1E;
+  background-color: #F4EFE8; /* Drop cloth cream — var(--color-surface-light) */
+  /*
+    LEARNING: We use hardcoded hex values here as a belt-and-braces measure.
+    CSS custom properties can fail silently (the property just uses its initial
+    value — usually nothing) if the :root block hasn't been parsed yet, or in
+    older browsers. Critical base styles like body font and background benefit
+    from a plain value alongside the variable reference.
+  */
+  overflow-x: hidden;
+}
+
+img {
+  /* Makes images responsive by default — never wider than their container */
+  max-width: 100%;
+  /* Removes the small gap that appears below inline images */
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font: inherit;
+}
+
+/*
+  LEARNING: :focus-visible shows focus rings only for keyboard navigation,
+  not mouse clicks. This keeps the visual design clean while maintaining
+  full keyboard accessibility. Removing all focus styles is an accessibility
+  violation — this is the right balance.
+*/
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+
+/* ================================================================
+  3. TYPOGRAPHY
+  ================================================================ */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-primary);
+}
+
+h1 { font-size: clamp(var(--text-4xl), 5vw, var(--text-6xl)); }
+h2 { font-size: clamp(var(--text-2xl), 3vw, var(--text-4xl)); }
+h3 { font-size: clamp(var(--text-xl),  2vw, var(--text-2xl)); }
+
+/*
+  LEARNING: clamp(min, preferred, max) is a powerful CSS function for
+  fluid typography. It sets a minimum size, a preferred size (often vw-based
+  so it scales with viewport), and a maximum.
+  clamp(2rem, 5vw, 4rem) means:
+  - Never smaller than 2rem
+  - Grows with viewport width (5vw)
+  - Never larger than 4rem
+  This replaces multiple media queries for font sizes.
+*/
+
+p {
+  max-width: 68ch; /* ch = width of the "0" character — limits line length for readability */
+  color: var(--color-text);
+}
+
+/*
+  LEARNING: Ideal line length for body text is 55-75 characters.
+  max-width: 68ch enforces this without needing to know pixel widths.
+*/
+
+
+/* ================================================================
+  4. UTILITY CLASSES
+  ================================================================ */
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto; /* margin-inline is shorthand for margin-left + margin-right */
+  padding-inline: var(--space-4);
+}
+
+@media (min-width: 600px) {
+  .container {
+    padding-inline: var(--space-8);
+  }
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.section-header--left {
+  text-align: left;
+}
+
+.section-label {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-2);
+  max-width: none;
+}
+
+.section-heading {
+  color: var(--color-primary);
+  margin-bottom: var(--space-4);
+}
+
+.section-subheading {
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  max-width: 55ch;
+  margin-inline: auto;
+}
+
+.section-header--left .section-subheading {
+  margin-inline: 0;
+}
+
+.required {
+  color: var(--color-accent);
+}
+
+.optional {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+
+/* ================================================================
+  5. BUTTONS
+  ================================================================
+
+  LEARNING: A button system uses modifier classes (BEM methodology).
+  .btn is the base class with shared styles.
+  .btn--accent, .btn--outline etc. are modifiers that change the visual variant.
+  .btn--sm, .btn--lg change the size.
+  This prevents code duplication — shared styles stay in .btn.
+
+  BEM = Block Element Modifier
+  Block:    .btn
+  Element:  .btn__icon (a child element of the button)
+  Modifier: .btn--accent (a variant of the button)
+*/
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.75em 1.5em;
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Variants */
+.btn--accent {
+  background-color: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+.btn--accent:hover {
+  background-color: #b04e15;
+  border-color: #b04e15;
+}
+
+.btn--outline {
+  background-color: transparent;
+  color: #fff;
+  border-color: rgba(255,255,255,0.6);
+}
+.btn--outline:hover {
+  background-color: rgba(255,255,255,0.1);
+  border-color: #fff;
+}
+
+.btn--dark {
+  background-color: var(--color-surface-dark);
+  color: #fff;
+  border-color: var(--color-surface-dark);
+}
+.btn--dark:hover {
+  background-color: #333;
+  border-color: #333;
+}
+
+.btn--outline-dark {
+  background-color: transparent;
+  color: var(--color-surface-dark);
+  border-color: var(--color-surface-dark);
+}
+.btn--outline-dark:hover {
+  background-color: var(--color-surface-dark);
+  color: #fff;
+}
+
+/* Sizes */
+.btn--sm {
+  font-size: var(--text-sm);
+  padding: 0.5em 1em;
+}
+
+.btn--lg {
+  font-size: var(--text-lg);
+  padding: 0.875em 1.75em;
+}
+
+.btn--full {
+  width: 100%;
+}
+
+
+/* ================================================================
+  6. NAVIGATION
+  ================================================================
+
+  LEARNING: The nav starts transparent (over the hero image) and
+  transitions to a solid dark background on scroll. This is done by
+  JavaScript adding the .scrolled class, and CSS handling the visual change.
+
+  Separating state (JS adds a class) from presentation (CSS styles the class)
+  is a core pattern in web development. JS manages WHAT state things are in.
+  CSS manages HOW those states look.
+*/
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--nav-height);
+  /*
+    LEARNING: We use the primary colour as an immediate fallback here.
+    Previously this was transparent, which looked fine *over* the hero image
+    but invisible on a white page while the page loads or if CSS loads slowly.
+    The JS still adds .scrolled for the polished transition effect.
+  */
+  background-color: #1A3A5C;
+  transition: background-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+/*
+  LEARNING: .scrolled is added by JavaScript when window.scrollY > 80.
+  The nav already has a solid background by default now. .scrolled deepens
+  it to the pure dark colour and adds a shadow to reinforce the layering.
+  If JavaScript fails entirely, the nav still looks fine — it just won't deepen.
+  This is called graceful degradation.
+*/
+.nav.scrolled {
+  background-color: #1C1C1E;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+}
+
+.nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.nav__logo {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.nav__logo span {
+  color: var(--color-accent);
+}
+
+.nav__links {
+  /*
+    LEARNING: There was a bug here — two display declarations in one rule.
+    CSS reads top to bottom; the second display: none silently won,
+    making the first display: flex completely pointless dead code.
+    One declaration per property per rule. The media query at the bottom
+    of this file overrides this to display: flex on desktop.
+  */
+  display: none;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.nav__link {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+  transition: color var(--transition-fast);
+  position: relative;
+}
+
+/*
+  LEARNING: This underline effect uses ::after pseudo-element.
+  It creates a line that starts at width:0 and expands to width:100% on hover.
+  The transform: scaleX(0) → scaleX(1) transition with transform-origin: left
+  makes it grow from left to right.
+*/
+.nav__link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-fast);
+}
+
+.nav__link:hover {
+  color: #fff;
+}
+
+.nav__link:hover::after {
+  transform: scaleX(1);
+}
+
+/* Hamburger button — three lines */
+.nav__hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.nav__hamburger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 2px;
+  transition:
+    transform var(--transition-base),
+    opacity var(--transition-fast);
+  transform-origin: center;
+}
+
+/*
+  LEARNING: When the menu is open (.open class added by JS), the three lines
+  animate into an X. The top line rotates 45°, the middle fades out, the
+  bottom line rotates -45°. Pure CSS transforms — no image swapping needed.
+*/
+.nav__hamburger.open span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+.nav__hamburger.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.nav__hamburger.open span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+/* Mobile nav dropdown */
+/*
+  LEARNING: We animate height using max-height, not height.
+  You cannot transition height: 0 → height: auto in CSS.
+  The trick: transition max-height from 0 to a value larger than the
+  content will ever be. The actual content height varies, but max-height
+  limits it, and the transition animates that limit.
+  Downside: the transition timing feels slightly uneven because it's
+  animating max-height, not actual height. But it works without JS measuring.
+*/
+.nav__mobile-menu {
+  position: absolute;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface-dark);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--transition-slow);
+}
+
+.nav__mobile-menu.open {
+  max-height: 400px;
+}
+
+.nav__mobile-menu ul {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) var(--space-4) var(--space-6);
+  gap: var(--space-1);
+}
+
+.nav__mobile-menu li a {
+  display: block;
+  padding: var(--space-3) var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  transition: color var(--transition-fast), padding-left var(--transition-fast);
+}
+
+.nav__mobile-menu li a:hover {
+  color: var(--color-accent);
+  padding-left: var(--space-4);
+}
+
+.nav__mobile-menu .btn {
+  margin-top: var(--space-4);
+  width: 100%;
+}
+
+
+/* ================================================================
+  7. HERO
+  ================================================================
+
+  LEARNING: The ::before pseudo-element creates the dark overlay
+  on top of the background image. This is the key technique:
+
+  1. Parent (.hero) has position: relative
+  2. .hero::before has position: absolute and inset: 0
+     (inset: 0 is shorthand for top:0 right:0 bottom:0 left:0)
+  3. ::before has z-index: 1 (above background, below content)
+  4. .hero__content has position: relative; z-index: 2 (above overlay)
+
+  This means you can change the overlay color/opacity without
+  editing the image, and swap the background image without
+  worrying about text readability.
+*/
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: var(--nav-height);
+  padding-bottom: var(--space-16);
+
+  /*
+    LEARNING: Previously this was rgba(10,20,40,0.97) — nearly opaque black.
+    Technically dark blue, but visually indistinguishable from pure black.
+    We now use clearly identifiable colours so the design reads as intentional.
+
+    The two-layer background-image trick:
+    Layer 1 (top): a strong colour gradient — this is what you see
+    Layer 2 (bottom): a subtle diagonal line texture — adds depth without noise
+    background-color: the solid fallback if gradients fail to parse
+    CSS renders layers front-to-back, so layer 1 sits on top of layer 2.
+  */
+  background-color: #1A3A5C;
+  background-image:
+    linear-gradient(
+      150deg,
+      #0f2744 0%,
+      #1A3A5C 45%,
+      #1e4570 100%
+    ),
+    repeating-linear-gradient(
+      -55deg,
+      transparent,
+      transparent 40px,
+      rgba(255,255,255,0.02) 40px,
+      rgba(255,255,255,0.02) 41px
+    );
+}
+
+/* Decorative pipe-like element */
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-brass), var(--color-accent));
+}
+
+.hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 780px;
+}
+
+.hero__badge {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-brass);
+  background-color: rgba(212, 168, 83, 0.12);
+  border: 1px solid rgba(212, 168, 83, 0.3);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-6);
+  max-width: none;
+}
+
+.hero__heading {
+  font-size: clamp(var(--text-4xl), 6vw, 5.5rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-6);
+  text-transform: uppercase;
+}
+
+/* Accent on last word of heading */
+.hero__heading em {
+  color: var(--color-accent);
+  font-style: normal;
+}
+
+.hero__subheading {
+  font-size: var(--text-lg);
+  color: rgba(255,255,255,0.75);
+  line-height: 1.7;
+  margin-bottom: var(--space-8);
+  max-width: 52ch;
+}
+
+.hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.hero__trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+}
+
+.hero__trust span {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.6);
+  max-width: none;
+}
+
+
+/* ================================================================
+  8. SERVICES
+  ================================================================ */
+
+.services {
+  background-color: var(--color-surface-dark);
+  padding: var(--space-16) 0;
+}
+
+.services__heading {
+  color: #fff;
+  text-align: center;
+  margin-bottom: var(--space-12);
+  text-transform: uppercase;
+}
+
+/*
+  LEARNING: This is the auto-fit/minmax pattern.
+  repeat(auto-fit, minmax(130px, 1fr)) means:
+  - Create as many columns as fit
+  - Each column is at least 130px wide
+  - Each column gets an equal share of remaining space (1fr)
+  No media queries. The browser handles 2, 3, 4, or 6 columns automatically.
+*/
+.services__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-4);
+}
+
+.service-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  background-color: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-md);
+  text-align: center;
+  transition: background-color var(--transition-base), border-color var(--transition-base), transform var(--transition-base);
+  cursor: default;
+}
+
+.service-card:hover {
+  background-color: rgba(199, 91, 26, 0.12);
+  border-color: rgba(199, 91, 26, 0.35);
+  transform: translateY(-4px);
+}
+
+.service-card__icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-accent);
+}
+
+.service-card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.service-card__title {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+
+/* ================================================================
+  9. BEFORE & AFTER
+  ================================================================
+
+  LEARNING: The slider works by placing two images on top of each other.
+  The "after" image has clip-path: inset(0 X% 0 0) which cuts off the
+  right portion of the image. X% is updated by JavaScript as you drag.
+  At 0%, the full after image is visible. At 100%, it's fully hidden.
+
+  The handle is positioned absolutely using left: X%, so it tracks the
+  same position as the clip boundary.
+*/
+
+.before-after {
+  background-color: #fff;
+  padding: var(--space-20) 0;
+}
+
+.ba-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.ba-card {
+  background-color: var(--color-surface-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.ba-slider {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;  /* Maintains proportion regardless of container width */
+  overflow: hidden;
+  cursor: ew-resize;  /* east-west resize cursor signals draggability */
+  user-select: none;  /* Prevent text selection while dragging */
+  -webkit-user-select: none;
+  touch-action: none; /* Prevents scrolling when dragging on touch devices */
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/*
+  LEARNING: aspect-ratio is a modern CSS property that maintains
+  a width-to-height ratio as the element resizes. 16/9 means for every
+  16 units of width, height is 9 units. This replaces the old "padding-top hack"
+  (padding-top: 56.25%) that did the same thing less elegantly.
+*/
+
+.ba-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  /* Fills the area, crops if needed — like background-size: cover */
+  object-position: center;
+}
+
+.ba-img--before {
+  z-index: 1;
+}
+
+.ba-img--after {
+  z-index: 2;
+  /* clip-path is updated by JavaScript */
+  clip-path: inset(0 50% 0 0);
+  transition: none; /* No transition during drag — feels laggy */
+}
+
+/* The draggable handle */
+.ba-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  pointer-events: none; /* The whole slider area handles events, not the handle itself */
+}
+
+.ba-handle__line {
+  flex: 1;
+  width: 2px;
+  background-color: #fff;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+}
+
+.ba-handle__button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 44px;
+  height: 44px;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: var(--shadow-lg);
+  flex-shrink: 0;
+  justify-content: center;
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* Before/After labels */
+.ba-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: var(--space-3);
+}
+
+.ba-label {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.ba-label--before {
+  background-color: rgba(0,0,0,0.5);
+  color: #fff;
+}
+
+.ba-label--after {
+  background-color: rgba(26, 58, 92, 0.8);
+  color: #fff;
+}
+
+/* Card info below the slider */
+.ba-card__info {
+  padding: var(--space-6) var(--space-8);
+}
+
+.ba-card__title {
+  font-size: var(--text-xl);
+  color: var(--color-primary);
+  margin-bottom: var(--space-3);
+}
+
+.ba-card__desc {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  max-width: 65ch;
+}
+
+.ba-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-8);
+  list-style: none;
+}
+
+.ba-card__stats li {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.ba-card__stats strong {
+  color: var(--color-primary);
+}
+
+
+/* ================================================================
+  10. TESTIMONIALS
+  ================================================================ */
+
+.testimonials {
+  background-color: var(--color-surface-light);
+  padding: var(--space-20) 0;
+}
+
+/*
+  LEARNING: auto-fit/minmax again. Each card is at least 280px.
+  On mobile (narrow): 1 card per row.
+  On tablet: 2 cards per row (560px+ container, fits 2×280px).
+  On desktop: 4 cards per row (1200px container, fits 4×280px).
+  Zero media queries. The browser decides.
+*/
+.testimonials__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-10);
+}
+
+.testimonial-card {
+  background-color: #fff;
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--color-accent);  /* The orange accent bar on the left */
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.testimonial-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* CSS-generated avatar circle with initials */
+.testimonial-card__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.testimonial-card__name {
+  font-weight: 600;
+  font-size: var(--text-base);
+  max-width: none;
+}
+
+.testimonial-card__location {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  max-width: none;
+}
+
+.testimonial-card__stars {
+  margin-left: auto;
+  color: var(--color-brass);
+  font-size: var(--text-lg);
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+
+.testimonial-card__quote {
+  font-style: normal;
+  color: var(--color-text);
+  line-height: 1.7;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-base);
+}
+
+.testimonial-card__service {
+  font-family: var(--font-heading);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  max-width: none;
+}
+
+.testimonials__badge {
+  text-align: center;
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-primary);
+  color: var(--color-brass);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  margin-inline: auto;
+  width: 100%;
+}
+
+
+/* ================================================================
+  11. CTA BANNER
+  ================================================================ */
+
+.cta-banner {
+  background-color: var(--color-accent);
+  padding: var(--space-16) 0;
+  /* Subtle diagonal texture */
+  background-image:
+    linear-gradient(135deg, var(--color-accent) 0%, #b84e14 100%),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 20px,
+      rgba(0,0,0,0.05) 20px,
+      rgba(0,0,0,0.05) 21px
+    );
+}
+
+.cta-banner__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.cta-banner__heading {
+  color: #fff;
+  font-size: clamp(var(--text-3xl), 4vw, var(--text-5xl));
+  text-transform: uppercase;
+}
+
+.cta-banner__body {
+  color: rgba(255,255,255,0.88);
+  font-size: var(--text-lg);
+  max-width: 55ch;
+}
+
+.cta-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cta-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+
+/* ================================================================
+  12. CONTACT / FORM
+  ================================================================ */
+
+.contact {
+  background-color: #fff;
+  padding: var(--space-20) 0;
+}
+
+.contact__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-16);
+  align-items: start;
+}
+
+/* Form layout */
+.callback-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background-color: var(--color-surface-light);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.15);
+}
+
+/*
+  LEARNING: The .error class is toggled by JavaScript when validation fails.
+  CSS handles the visual feedback. This is the state/presentation separation pattern.
+*/
+.form-input.error {
+  border-color: #DC2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.form-error {
+  font-size: var(--text-sm);
+  color: #DC2626;
+  display: none; /* Hidden by default */
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.form-error.visible {
+  display: flex;
+}
+
+/* Custom select arrow (since appearance: none removes the default) */
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+/* Success message */
+.form-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-12) var(--space-8);
+  gap: var(--space-4);
+}
+
+.form-success[hidden] {
+  display: none;
+}
+
+.form-success__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #16A34A;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.form-success__heading {
+  color: var(--color-primary);
+}
+
+.form-success__body {
+  color: var(--color-text-muted);
+  max-width: 40ch;
+  text-align: center;
+  margin-inline: auto;
+}
+
+.form-success__body a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* Business details column */
+.contact__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.detail-block__heading {
+  font-size: var(--text-sm);
+  font-family: var(--font-heading);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-2);
+}
+
+.detail-block__value {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+  max-width: none;
+}
+
+.detail-block__link {
+  display: inline-block;
+  transition: color var(--transition-fast);
+}
+.detail-block__link:hover {
+  color: var(--color-accent);
+}
+
+.detail-block__note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+  max-width: none;
+}
+
+.contact__map-placeholder {
+  background-color: var(--color-surface-light);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+
+/* ================================================================
+  13. FOOTER
+  ================================================================ */
+
+.footer {
+  background-color: var(--color-surface-dark);
+  padding-top: var(--space-16);
+}
+
+.footer__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-10);
+  padding-bottom: var(--space-12);
+}
+
+.footer__logo {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.footer__logo span {
+  color: var(--color-accent);
+}
+
+.footer__tagline {
+  color: rgba(255,255,255,0.6);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2);
+  max-width: none;
+}
+
+.footer__licence {
+  color: rgba(255,255,255,0.35);
+  font-size: var(--text-xs);
+  max-width: none;
+}
+
+.footer__nav-heading {
+  font-family: var(--font-heading);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: var(--space-4);
+}
+
+.footer__nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.footer__nav ul a,
+.footer__contact a,
+.footer__contact p {
+  font-size: var(--text-sm);
+  color: rgba(255,255,255,0.7);
+  transition: color var(--transition-fast);
+  max-width: none;
+}
+
+.footer__nav ul a:hover,
+.footer__contact a:hover {
+  color: var(--color-accent);
+}
+
+.footer__contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.footer__bottom {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: var(--space-4) 0;
+}
+
+.footer__bottom p {
+  font-size: var(--text-xs);
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  max-width: none;
+}
+
+
+/* ================================================================
+  14. ANIMATIONS
+  ================================================================
+
+  LEARNING: IntersectionObserver (in main.js) watches elements with
+  .animate-on-scroll. When they enter the viewport, JavaScript adds
+  .visible. CSS handles the animation via transition.
+
+  Initial state: invisible (opacity: 0) and slightly below position (translateY: 24px)
+  Final state: fully visible at original position
+
+  This pattern (class toggle + CSS transition) is the correct way to do
+  scroll-triggered animations. The old approach was calculating scroll positions
+  on every scroll event — expensive and janky. IntersectionObserver is purpose-built.
+*/
+
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--transition-slow),
+    transform var(--transition-slow);
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/*
+  LEARNING: prefers-reduced-motion is a media query that detects whether
+  the user has requested reduced animations in their OS accessibility settings.
+  When active, we skip all transitions and animations. This is essential
+  for users who experience motion sickness or vestibular disorders.
+  Not including this is an accessibility failure.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+
+/* ================================================================
+  15. MEDIA QUERIES — TABLET & DESKTOP
+  ================================================================
+
+  LEARNING: These are min-width queries — mobile-first approach.
+  The base styles above target mobile.
+  These @media blocks add/override styles for larger screens.
+
+  "Mobile first" means: write your base styles for the smallest screen,
+  then use min-width media queries to enhance for larger screens.
+  This approach produces less total CSS because simple stacked layouts
+  (the mobile version) need no media queries.
+
+  The opposite (desktop-first) means writing for desktop, then using
+  max-width queries to shrink things for mobile. More work, more code.
+*/
+
+/* ---- Tablet: 600px+ ---- */
+@media (min-width: 600px) {
+
+  .nav__mobile-menu .btn {
+    width: auto;
+  }
+
+  .cta-banner__inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ba-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* ---- Desktop: 1024px+ ---- */
+@media (min-width: 1024px) {
+
+  /* Nav: show desktop links, hide hamburger */
+  .nav__links {
+    display: flex;
+  }
+
+  .nav__hamburger {
+    display: none;
+  }
+
+  /* Nav mobile menu hidden entirely on desktop */
+  .nav__mobile-menu {
+    display: none;
+  }
+
+  /* Before/After: show cards in a grid */
+  .ba-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--space-8);
+  }
+
+  /* Contact: two-column layout */
+  .contact__inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* CTA Banner: text and buttons side by side */
+  .cta-banner__inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-12);
+  }
+
+  /* Footer: three-column layout */
+  .footer__inner {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+
+}
+
+/* ---- Large Desktop: 1280px+ ---- */
+@media (min-width: 1280px) {
+  .ba-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
