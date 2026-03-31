@@ -591,6 +591,20 @@
           </div>
 
           <div class="form-group">
+            <label for="email" class="form-label">Email Address <span class="required" aria-hidden="true">*</span></label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              placeholder="e.g. sarah@example.com"
+              autocomplete="email"
+              required
+            />
+            <span class="form-error" id="email-error" role="alert" aria-live="assertive"></span>
+          </div>
+
+          <div class="form-group">
             <label for="service" class="form-label">What's the Issue? <span class="required" aria-hidden="true">*</span></label>
             <!--
               LEARNING: <select> creates a dropdown. The first option acts as

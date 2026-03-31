@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<!--
+  LEARNING: admin.html is a completely separate page from index.html.
+  It has its own HTML, its own styles (written inline in a <style> tag
+  here for simplicity — no need for a separate CSS file for one page),
+  and its own JavaScript at the bottom.
+
+  The security model:
+  - This page itself is publicly accessible (anyone can load it)
+  - But the ACTUAL DATA is only available from GET /api/leads
+  - That endpoint requires the correct password in a request header
+  - Without the password, the server returns a 401 error and no data
+  - So the login form here is the gatekeeper to seeing any leads
+-->
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Josh's Plumbing</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ---- Reset & base ---- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #E8730A;
+      --dark:   #0f0f0f;
+      --card:   #1a1a1a;
+      --border: #2a2a2a;
+      --text:   #e0e0e0;
+      --muted:  #888;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header__logo {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #fff;
+    }
+
+    .header__logo span { color: var(--orange); }
+
+    .header__badge {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ---- Main container ---- */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ---- Login screen ---- */
+    #login-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 64px);
+    }
+
+    .login-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .login-card h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.5rem;
+      margin-bottom: 0.4rem;
+      color: #fff;
+    }
+
+    .login-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .login-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      transition: border-color 200ms;
+    }
+
+    .login-input:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: opacity 200ms;
+    }
+
+    .login-btn:hover { opacity: 0.9; }
+
+    .login-error {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: #e05555;
+      display: none;
+    }
+
+    /* ---- Leads screen ---- */
+    #leads-screen { display: none; }
+
+    .leads-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .leads-header h1 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.75rem;
+      color: #fff;
+    }
+
+    .leads-header h1 span { color: var(--orange); }
+
+    .leads-count {
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .logout-btn {
+      padding: 0.4rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: border-color 200ms, color 200ms;
+    }
+
+    .logout-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+    /* ---- Empty state ---- */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+
+    .empty-state p { font-size: 1rem; }
+
+    /* ---- Lead cards (mobile-first) ---- */
+    .leads-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .lead-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+
+    /*
+      LEARNING: On wider screens (768px+) we switch to a two-column
+      layout for each card. CSS media queries let us apply different
+      styles based on screen width.
+    */
+    @media (min-width: 768px) {
+      .lead-card {
+        grid-template-columns: 1fr 1fr;
+      }
+      .lead-card__message { grid-column: 1 / -1; }
+    }
+
+    .lead-card__header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .lead-card__name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .lead-card__id {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .lead-card__service {
+      display: inline-block;
+      background: rgba(232, 115, 10, 0.15);
+      color: var(--orange);
+      border: 1px solid rgba(232, 115, 10, 0.3);
+      border-radius: 3px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .lead-card__field {
+      font-size: 0.875rem;
+    }
+
+    .lead-card__label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .lead-card__value {
+      color: var(--text);
+    }
+
+    .lead-card__value a {
+      color: var(--orange);
+      text-decoration: none;
+    }
+
+    .lead-card__value a:hover { text-decoration: underline; }
+
+    .lead-card__message {
+      font-size: 0.875rem;
+    }
+
+    .lead-card__message .lead-card__value {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .lead-card__date {
+      grid-column: 1 / -1;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================================================
+    HEADER
+  ============================================================ -->
+  <header class="header">
+    <p class="header__logo">Josh's <span>Plumbing</span></p>
+    <span class="header__badge">Admin Panel</span>
+  </header>
+
+
+  <!-- ============================================================
+    LOGIN SCREEN
+    Shown first. Hidden once the correct password is entered.
+  ============================================================ -->
+  <div id="login-screen">
+    <div class="login-card">
+      <h1>Sign In</h1>
+      <p>Enter the admin password to view your leads.</p>
+
+      <form id="login-form" novalidate>
+        <label for="password-input" class="login-label">Password</label>
+        <input
+          type="password"
+          id="password-input"
+          class="login-input"
+          placeholder="Enter password"
+          autocomplete="current-password"
+        />
+        <button type="submit" class="login-btn">View Leads &rarr;</button>
+        <p class="login-error" id="login-error">Incorrect password. Try again.</p>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ============================================================
+    LEADS SCREEN
+    Hidden until login succeeds.
+  ============================================================ -->
+  <div id="leads-screen">
+    <div class="main">
+
+      <div class="leads-header">
+        <div>
+          <h1>Incoming <span>Leads</span></h1>
+          <p class="leads-count" id="leads-count"></p>
+        </div>
+        <button class="logout-btn" id="logout-btn">Sign Out</button>
+      </div>
+
+      <!-- Lead cards are injected here by JavaScript -->
+      <div class="leads-grid" id="leads-grid"></div>
+
+    </div>
+  </div>
+
+
+  <script>
+    /*
+      LEARNING: All the JavaScript for this page lives here in the HTML file.
+      For a single admin page with limited JS, this is perfectly acceptable —
+      there's no need for a separate .js file.
+
+      How this page works:
+      1. User enters password and submits the login form
+      2. JS makes a GET request to /api/leads with the password in a header
+      3. If the server returns 401, we show an error
+      4. If the server returns leads, we hide the login screen, show the leads
+    */
+
+    const loginScreen  = document.getElementById('login-screen');
+    const leadsScreen  = document.getElementById('leads-screen');
+    const loginForm    = document.getElementById('login-form');
+    const passwordInput = document.getElementById('password-input');
+    const loginError   = document.getElementById('login-error');
+    const leadsGrid    = document.getElementById('leads-grid');
+    const leadsCount   = document.getElementById('leads-count');
+    const logoutBtn    = document.getElementById('logout-btn');
+
+    // Store password in memory so we can use it for fetching leads
+    // LEARNING: This variable only exists while the browser tab is open.
+    // Closing the tab clears it — the user has to log in again next time.
+    let adminPassword = '';
+
+    /* ---- SERVICE LABELS ----
+       The form stores short codes (e.g. 'hot-water').
+       This map converts them to human-readable labels for display.
+    */
+    const SERVICE_LABELS = {
+      'emergency':  'Emergency / Burst Pipe',
+      'blocked':    'Blocked Drain',
+      'hot-water':  'Hot Water System',
+      'leak':       'Leak Detection',
+      'bathroom':   'Bathroom Renovation',
+      'gas':        'Gas Fitting',
+      'other':      'Other / Not Sure'
+    };
+
+    /* ---- FORMAT DATE ----
+       SQLite stores dates as '2026-03-30 14:22:05'.
+       This converts that to a friendlier '30 Mar 2026, 2:22 PM'.
+    */
+    function formatDate(dateString) {
+      const date = new Date(dateString + ' UTC');
+      /*
+        LEARNING: SQLite's CURRENT_TIMESTAMP is stored without a timezone.
+        Adding ' UTC' tells JavaScript to treat it as UTC time,
+        so it converts correctly to the user's local timezone.
+      */
+      return date.toLocaleString('en-AU', {
+        day:    'numeric',
+        month:  'short',
+        year:   'numeric',
+        hour:   'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    /* ---- RENDER LEADS ----
+       Takes an array of lead objects from the API and builds
+       HTML cards for each one, then inserts them into the page.
+    */
+    function renderLeads(leads) {
+      leadsCount.textContent = leads.length === 1
+        ? '1 lead'
+        : `${leads.length} leads`;
+
+      if (leads.length === 0) {
+        leadsGrid.innerHTML = `
+          <div class="empty-state">
+            <p>No leads yet. They'll appear here when someone fills out the contact form.</p>
+          </div>
+        `;
+        return;
+      }
+
+      /*
+        LEARNING: Array.map() transforms each item in an array into something else.
+        Here we turn each lead object into an HTML string.
+        .join('') stitches all the strings together into one big HTML string.
+        This is a common pattern for building lists of HTML from data.
+      */
+      leadsGrid.innerHTML = leads.map(function(lead) {
+        const serviceLabel = SERVICE_LABELS[lead.service] || lead.service;
+        const hasMessage   = lead.message && lead.message.trim();
+
+        return `
+          <div class="lead-card">
+            <div class="lead-card__header">
+              <p class="lead-card__name">${escapeHtml(lead.name)}</p>
+              <span class="lead-card__id">#${lead.id}</span>
+            </div>
+
+            <span class="lead-card__service">${escapeHtml(serviceLabel)}</span>
+
+            <div class="lead-card__field">
+              <span class="lead-card__label">Phone</span>
+              <p class="lead-card__value">
+                <a href="tel:${escapeHtml(lead.phone)}">${escapeHtml(lead.phone)}</a>
+              </p>
+            </div>
+
+            <div class="lead-card__field">
+              <span class="lead-card__label">Email</span>
+              <p class="lead-card__value">
+                <a href="mailto:${escapeHtml(lead.email)}">${escapeHtml(lead.email)}</a>
+              </p>
+            </div>
+
+            ${hasMessage ? `
+            <div class="lead-card__message">
+              <span class="lead-card__label">Message</span>
+              <p class="lead-card__value">${escapeHtml(lead.message)}</p>
+            </div>
+            ` : ''}
+
+            <p class="lead-card__date">Received: ${formatDate(lead.submitted_at)}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /*
+      LEARNING: escapeHtml() is a critical security function.
+      If a user submits a name like: <script>alert('hacked')<\/script>
+      and we insert it directly into innerHTML, the browser would
+      execute that as code. This is called Cross-Site Scripting (XSS).
+
+      escapeHtml() replaces <, >, &, " with their safe HTML entity equivalents
+      so they display as text rather than being interpreted as HTML.
+      Always escape user-supplied content before inserting it into the DOM.
+    */
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* ---- FETCH LEADS ----
+       Makes the authenticated request to /api/leads.
+    */
+    function fetchLeads(password) {
+      return fetch('/api/leads', {
+        headers: {
+          /*
+            LEARNING: We send the password as a custom HTTP header
+            called 'x-admin-password'. The server reads this in
+            req.headers['x-admin-password'] and checks it.
+
+            This keeps the password out of the URL (which would appear
+            in browser history and server logs).
+          */
+          'x-admin-password': password
+        }
+      });
+    }
+
+    /* ---- LOGIN FORM SUBMIT ---- */
+    loginForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      loginError.style.display = 'none';
+
+      const password = passwordInput.value;
+      if (!password) return;
+
+      // Show loading state on the button so we know the click registered
+      const btn = loginForm.querySelector('button[type="submit"]');
+      btn.textContent = 'Checking…';
+      btn.disabled = true;
+
+      function resetBtn() {
+        btn.textContent = 'View Leads →';
+        btn.disabled = false;
+      }
+
+      fetchLeads(password)
+        .then(function(response) {
+          console.log('Server responded with status:', response.status);
+
+          if (response.status === 401) {
+            resetBtn();
+            loginError.textContent = 'Incorrect password. Try again.';
+            loginError.style.display = 'block';
+            passwordInput.value = '';
+            passwordInput.focus();
+            return null;
+          }
+          if (!response.ok) {
+            throw new Error('Server returned status ' + response.status);
+          }
+          return response.json();
+        })
+        .then(function(leads) {
+          if (leads === null || leads === undefined) return;
+
+          adminPassword = password;
+          loginScreen.style.display = 'none';
+          leadsScreen.style.display = 'block';
+          renderLeads(leads);
+        })
+        .catch(function(err) {
+          console.error('Login error:', err);
+          resetBtn();
+          loginError.textContent = 'Could not reach the server. Is "node server.js" running?';
+          loginError.style.display = 'block';
+        });
+    });
+
+    /* ---- LOGOUT ---- */
+    logoutBtn.addEventListener('click', function() {
+      adminPassword = '';
+      leadsScreen.style.display = 'none';
+      loginScreen.style.display = 'flex';
+      passwordInput.value = '';
+    });
+
+    // Focus the password input on page load
+    passwordInput.focus();
+  </script>
+
+</body>
+</html>

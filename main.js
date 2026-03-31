@@ -480,6 +480,7 @@ function initFormValidation() {
   function clearAllErrors() {
     clearError('name', 'name-error');
     clearError('phone', 'phone-error');
+    clearError('email', 'email-error');
     clearError('service', 'service-error');
   }
 
@@ -496,6 +497,10 @@ function initFormValidation() {
 
   $('#phone').addEventListener('input', function() {
     if (this.value.trim()) clearError('phone', 'phone-error');
+  });
+
+  $('#email').addEventListener('input', function() {
+    if (this.value.trim()) clearError('email', 'email-error');
   });
 
   $('#service').addEventListener('change', function() {
@@ -515,7 +520,10 @@ function initFormValidation() {
 
     const nameInput    = $('#name');
     const phoneInput   = $('#phone');
+    const emailInput   = $('#email');
     const serviceInput = $('#service');
+    const messageInput = $('#message');
+    const submitBtn    = form.querySelector('[type="submit"]');
 
     let hasErrors = false;
 
@@ -545,6 +553,27 @@ function initFormValidation() {
       hasErrors = true;
     }
 
+    // Validate email
+    const emailValue = emailInput.value.trim();
+    /*
+      LEARNING: This regex is a basic email format check.
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/ breaks down as:
+      ^ = start of string
+      [^\s@]+ = one or more characters that are NOT a space or @
+      @ = a literal @ symbol
+      [^\s@]+ = one or more characters (the domain name)
+      \. = a literal dot
+      [^\s@]+$ = one or more characters (the extension, e.g. "com")
+      It catches obvious mistakes like missing @ or missing dot.
+    */
+    if (!emailValue) {
+      showError('email', 'email-error', '&#10007; Please enter your email address');
+      hasErrors = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+      showError('email', 'email-error', '&#10007; Please enter a valid email address');
+      hasErrors = true;
+    }
+
     // Validate service selection
     if (!serviceInput.value) {
       showError('service', 'service-error', '&#10007; Please select a service');
@@ -560,34 +589,71 @@ function initFormValidation() {
       */
       const firstError = form.querySelector('.form-input.error');
       if (firstError) firstError.focus();
-      return; // Stop here — don't show success
+      return;
     }
 
-    // All valid — show success state
+    // All valid — send to the server
     /*
-      LEARNING: We're doing a visual swap here:
-      1. Add a CSS class that fades the form out (opacity → 0)
-      2. Wait for the transition to finish (250ms)
-      3. Hide the form with the hidden attribute
-      4. Remove the hidden attribute from the success message
-      5. Scroll it into view
+      LEARNING: fetch() is the browser's built-in tool for making HTTP requests
+      from JavaScript — without reloading the page. This is called an AJAX request.
 
-      The hidden attribute is a standard HTML attribute that hides an element.
-      It's like display:none but semantic and toggleable with element.hidden.
+      We pass it:
+      - The URL to send to ('/api/contact' on our Express server)
+      - method: 'POST' because we're submitting data (not just reading it)
+      - headers: tells the server the body is JSON
+      - body: JSON.stringify() converts our JS object into a JSON string
+
+      fetch() returns a Promise — a placeholder for a value we don't have yet.
+      .then() runs when the request completes. .catch() runs if the network fails.
     */
-    form.style.transition = 'opacity 250ms ease';
-    form.style.opacity = '0';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending\u2026';
 
-    setTimeout(function() {
-      form.hidden = true;
-      form.style.opacity = ''; // Reset for if form is ever shown again
-      form.style.transition = '';
-
-      if (successMessage) {
-        successMessage.hidden = false;
-        successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:    nameInput.value.trim(),
+        phone:   phoneInput.value.trim(),
+        email:   emailInput.value.trim(),
+        service: serviceInput.value,
+        message: messageInput ? messageInput.value.trim() : ''
+      })
+    })
+    .then(function(response) {
+      /*
+        LEARNING: fetch() only rejects (triggers .catch) on a network failure —
+        like being offline. A 400 or 500 error from the server still "succeeds"
+        as far as fetch is concerned. We check response.ok (true for status 200-299)
+        to detect server-side errors ourselves.
+      */
+      if (!response.ok) {
+        throw new Error('Server error');
       }
-    }, 260);
+      return response.json();
+    })
+    .then(function() {
+      // Success — fade the form out and show the confirmation message
+      form.style.transition = 'opacity 250ms ease';
+      form.style.opacity = '0';
+
+      setTimeout(function() {
+        form.hidden = true;
+        form.style.opacity = '';
+        form.style.transition = '';
+
+        if (successMessage) {
+          successMessage.hidden = false;
+          successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 260);
+    })
+    .catch(function() {
+      // Something went wrong — re-enable the button so they can try again
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Request Callback \u2192';
+      alert('Sorry, something went wrong. Please try again or call us directly.');
+    });
   });
 }
 
