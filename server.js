@@ -117,6 +117,15 @@ async function startServer() {
     )
   `);
 
+  /*
+    LEARNING: SQLite doesn't support "ALTER TABLE ... ADD COLUMN IF NOT EXISTS".
+    The safest workaround for a beginner project is to just try adding the column
+    and catch the error if it already exists — SQLite throws "duplicate column name"
+    in that case. This means the server can restart safely without crashing.
+  */
+  try { db.exec(`ALTER TABLE leads ADD COLUMN status TEXT DEFAULT 'new-lead'`); } catch (e) { /* column already exists */ }
+  try { db.exec(`ALTER TABLE leads ADD COLUMN notes  TEXT DEFAULT ''`);         } catch (e) { /* column already exists */ }
+
   // Save the initial state to disk right away
   saveToDisk();
 
@@ -210,8 +219,61 @@ async function startServer() {
       return res.status(401).json({ error: 'Unauthorised.' });
     }
 
-    const leads = dbAll('SELECT * FROM leads ORDER BY submitted_at DESC');
+    const leads = dbAll('SELECT id, name, phone, email, service, message, status, notes, submitted_at FROM leads ORDER BY submitted_at DESC');
     res.json(leads);
+  });
+
+
+  /* ----------------------------------------------------------------
+     PATCH /api/leads/:id
+     Updates the status and/or notes on a single lead.
+     Requires the admin password header, just like GET /api/leads.
+     ---------------------------------------------------------------- */
+  app.patch('/api/leads/:id', (req, res) => {
+    const password = req.headers['x-admin-password'];
+    if (password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Unauthorised.' });
+    }
+
+    /*
+      LEARNING: req.params.id is the :id part of the URL — e.g. for a request
+      to PATCH /api/leads/7, req.params.id is the string "7".
+      We parse it to an integer with parseInt() before using it in SQL.
+    */
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid lead ID.' });
+    }
+
+    const { status, notes } = req.body;
+
+    // Validate status if provided — only allow the five known pipeline stages
+    const VALID_STATUSES = ['new-lead', 'contacted', 'quoted', 'won', 'lost'];
+    if (status !== undefined && !VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value.' });
+    }
+
+    /*
+      Build the UPDATE query dynamically so we only touch the fields
+      that were actually sent. If only notes is sent, we don't overwrite status,
+      and vice versa.
+    */
+    const fields = [];
+    const values = [];
+
+    if (status !== undefined) { fields.push('status = ?'); values.push(status); }
+    if (notes  !== undefined) { fields.push('notes = ?');  values.push(notes);  }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: 'Nothing to update.' });
+    }
+
+    values.push(id); // for the WHERE clause
+
+    db.run(`UPDATE leads SET ${fields.join(', ')} WHERE id = ?`, values);
+    saveToDisk();
+
+    res.json({ success: true });
   });
 
 

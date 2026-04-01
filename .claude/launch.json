@@ -2,16 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Static Site (serve)",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", ".", "--listen", "3000", "--no-clipboard"],
+      "name": "Josh's Plumbing",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
       "port": 3000
-    },
-    {
-      "name": "Static Site (http-server)",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["http-server", ".", "-p", "8080", "--cors"],
-      "port": 8080
     }
   ]
 }

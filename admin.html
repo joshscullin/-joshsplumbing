@@ -210,32 +210,189 @@
 
     .empty-state p { font-size: 1rem; }
 
-    /* ---- Lead cards (mobile-first) ---- */
-    .leads-grid {
-      display: grid;
+    /* ---- Kanban board ---- */
+
+    /*
+      LEARNING: overflow-x: auto lets the board scroll sideways when
+      there isn't enough room to show all 5 columns at once — useful on
+      small screens. align-items: flex-start keeps columns anchored to
+      the top instead of stretching to the tallest one.
+    */
+    .board {
+      display: flex;
       gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 1.5rem;
+      align-items: flex-start;
     }
 
-    .lead-card {
+    .board__column {
+      flex: 0 0 260px;          /* fixed width, won't shrink */
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 1.25rem 1.5rem;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 180px);
     }
 
-    /*
-      LEARNING: On wider screens (768px+) we switch to a two-column
-      layout for each card. CSS media queries let us apply different
-      styles based on screen width.
-    */
-    @media (min-width: 768px) {
-      .lead-card {
-        grid-template-columns: 1fr 1fr;
-      }
-      .lead-card__message { grid-column: 1 / -1; }
+    /* Colour the top border of Won/Lost columns so they stand out */
+    .board__column[data-status="won"]  { border-top-color: #2a7a3b; }
+    .board__column[data-status="lost"] { border-top-color: #7a2a2a; }
+
+    .board__column-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;  /* header never gets squished */
+    }
+
+    .board__column-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #fff;
+    }
+
+    .board__count {
+      font-size: 0.7rem;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 0.15rem 0.55rem;
+      min-width: 1.4rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Cards area inside each column — scrolls vertically if overflow */
+    .board__cards {
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Empty column placeholder */
+    .board__empty {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 1.5rem 0.5rem;
+    }
+
+    /* ---- Lead cards ---- */
+    .lead-card {
+      background: #222;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      cursor: grab;
+    }
+
+    .lead-card:active { cursor: grabbing; }
+
+    /* ---- Stats bar ---- */
+    .stats-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      flex: 1;
+      min-width: 90px;
+    }
+
+    .stat-card__value {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-card__label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    /* Accent colours for specific stats */
+    .stat-card--won  .stat-card__value { color: #4caf50; }
+    .stat-card--lost .stat-card__value { color: #e05555; }
+    .stat-card--rate .stat-card__value { color: var(--orange); }
+
+    /* ---- Notes section inside each card ---- */
+    .lead-card__notes {
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      margin-top: 0.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .notes-textarea {
+      width: 100%;
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      padding: 0.4rem 0.6rem;
+      resize: vertical;
+      min-height: 52px;
+      transition: border-color 200ms;
+    }
+
+    .notes-textarea:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    .notes-save-btn {
+      align-self: flex-start;
+      padding: 0.25rem 0.7rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: border-color 200ms, color 200ms;
+    }
+
+    .notes-save-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+    .notes-save-btn.saved  { border-color: #2a7a3b; color: #4caf50; }
+    .notes-save-btn:disabled { opacity: 0.5; cursor: default; }
+
+    /* Card being dragged — faded out so you can see where it came from */
+    .lead-card.dragging { opacity: 0.35; }
+
+    /* Column highlighted when a card is hovering over it */
+    .board__column.drag-over {
+      border-color: var(--orange);
+      background: rgba(232, 115, 10, 0.04);
     }
 
     .lead-card__header {
@@ -370,8 +527,82 @@
         <button class="logout-btn" id="logout-btn">Sign Out</button>
       </div>
 
-      <!-- Lead cards are injected here by JavaScript -->
-      <div class="leads-grid" id="leads-grid"></div>
+      <!-- Stats bar — values are set by updateStats() in JavaScript -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <p class="stat-card__value" id="stat-total">—</p>
+          <p class="stat-card__label">Total Jobs</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-card__value" id="stat-new-lead">—</p>
+          <p class="stat-card__label">New Lead</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-card__value" id="stat-contacted">—</p>
+          <p class="stat-card__label">Contacted</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-card__value" id="stat-quoted">—</p>
+          <p class="stat-card__label">Quoted</p>
+        </div>
+        <div class="stat-card stat-card--won">
+          <p class="stat-card__value" id="stat-won">—</p>
+          <p class="stat-card__label">Won</p>
+        </div>
+        <div class="stat-card stat-card--lost">
+          <p class="stat-card__value" id="stat-lost">—</p>
+          <p class="stat-card__label">Lost</p>
+        </div>
+        <div class="stat-card stat-card--rate">
+          <p class="stat-card__value" id="stat-rate">—</p>
+          <p class="stat-card__label">Conversion Rate</p>
+        </div>
+      </div>
+
+      <!-- Kanban board — JavaScript fills each column's .board__cards div -->
+      <div class="board" id="board">
+
+        <div class="board__column" data-status="new-lead">
+          <div class="board__column-header">
+            <span class="board__column-title">New Lead</span>
+            <span class="board__count" id="count-new-lead">0</span>
+          </div>
+          <div class="board__cards" id="cards-new-lead"></div>
+        </div>
+
+        <div class="board__column" data-status="contacted">
+          <div class="board__column-header">
+            <span class="board__column-title">Contacted</span>
+            <span class="board__count" id="count-contacted">0</span>
+          </div>
+          <div class="board__cards" id="cards-contacted"></div>
+        </div>
+
+        <div class="board__column" data-status="quoted">
+          <div class="board__column-header">
+            <span class="board__column-title">Quoted</span>
+            <span class="board__count" id="count-quoted">0</span>
+          </div>
+          <div class="board__cards" id="cards-quoted"></div>
+        </div>
+
+        <div class="board__column" data-status="won">
+          <div class="board__column-header">
+            <span class="board__column-title">Won</span>
+            <span class="board__count" id="count-won">0</span>
+          </div>
+          <div class="board__cards" id="cards-won"></div>
+        </div>
+
+        <div class="board__column" data-status="lost">
+          <div class="board__column-header">
+            <span class="board__column-title">Lost</span>
+            <span class="board__count" id="count-lost">0</span>
+          </div>
+          <div class="board__cards" id="cards-lost"></div>
+        </div>
+
+      </div>
 
     </div>
   </div>
@@ -390,14 +621,26 @@
       4. If the server returns leads, we hide the login screen, show the leads
     */
 
-    const loginScreen  = document.getElementById('login-screen');
-    const leadsScreen  = document.getElementById('leads-screen');
-    const loginForm    = document.getElementById('login-form');
+    const loginScreen   = document.getElementById('login-screen');
+    const leadsScreen   = document.getElementById('leads-screen');
+    const loginForm     = document.getElementById('login-form');
     const passwordInput = document.getElementById('password-input');
-    const loginError   = document.getElementById('login-error');
-    const leadsGrid    = document.getElementById('leads-grid');
-    const leadsCount   = document.getElementById('leads-count');
-    const logoutBtn    = document.getElementById('logout-btn');
+    const loginError    = document.getElementById('login-error');
+    const leadsCount    = document.getElementById('leads-count');
+    const logoutBtn     = document.getElementById('logout-btn');
+
+    /*
+      COLUMNS defines the five pipeline stages in display order.
+      'status' matches the value stored in the database.
+      'label' is what appears in the column header.
+    */
+    const COLUMNS = [
+      { status: 'new-lead',  label: 'New Lead'  },
+      { status: 'contacted', label: 'Contacted' },
+      { status: 'quoted',    label: 'Quoted'    },
+      { status: 'won',       label: 'Won'       },
+      { status: 'lost',      label: 'Lost'      }
+    ];
 
     // Store password in memory so we can use it for fetching leads
     // LEARNING: This variable only exists while the browser tab is open.
@@ -440,67 +683,147 @@
     }
 
     /* ---- RENDER LEADS ----
-       Takes an array of lead objects from the API and builds
-       HTML cards for each one, then inserts them into the page.
+       Clears all five columns, then places each lead card into the
+       correct column based on its status field.
     */
     function renderLeads(leads) {
       leadsCount.textContent = leads.length === 1
         ? '1 lead'
         : `${leads.length} leads`;
 
+      // Clear every column's cards area and reset its count badge to 0
+      COLUMNS.forEach(function(col) {
+        document.getElementById('cards-' + col.status).innerHTML = '';
+        document.getElementById('count-'  + col.status).textContent = '0';
+      });
+
       if (leads.length === 0) {
-        leadsGrid.innerHTML = `
-          <div class="empty-state">
-            <p>No leads yet. They'll appear here when someone fills out the contact form.</p>
-          </div>
-        `;
+        // Show a hint message in the first column only
+        document.getElementById('cards-new-lead').innerHTML =
+          '<p class="board__empty">No leads yet. They\'ll appear here when someone fills out the contact form.</p>';
         return;
       }
 
       /*
-        LEARNING: Array.map() transforms each item in an array into something else.
-        Here we turn each lead object into an HTML string.
-        .join('') stitches all the strings together into one big HTML string.
-        This is a common pattern for building lists of HTML from data.
+        LEARNING: Instead of building one big HTML string, we create each
+        card as a real DOM element with createElement(), set its innerHTML,
+        and appendChild() it into the right column. This makes it much easier
+        to attach event listeners to individual cards later (for drag-and-drop).
       */
-      leadsGrid.innerHTML = leads.map(function(lead) {
+      leads.forEach(function(lead) {
+        const status       = lead.status || 'new-lead';
+        const cardsEl      = document.getElementById('cards-' + status);
+        if (!cardsEl) return; // unknown status value — skip rather than crash
+
         const serviceLabel = SERVICE_LABELS[lead.service] || lead.service;
         const hasMessage   = lead.message && lead.message.trim();
 
-        return `
-          <div class="lead-card">
-            <div class="lead-card__header">
-              <p class="lead-card__name">${escapeHtml(lead.name)}</p>
-              <span class="lead-card__id">#${lead.id}</span>
-            </div>
+        const card = document.createElement('div');
+        card.className      = 'lead-card';
+        card.dataset.id     = lead.id;
+        card.dataset.status = status;        // track which column the card is in
+        card.setAttribute('draggable', 'true');
 
-            <span class="lead-card__service">${escapeHtml(serviceLabel)}</span>
+        // When drag starts, store this card's ID so the drop handler knows which card moved
+        card.addEventListener('dragstart', function(e) {
+          e.dataTransfer.setData('text/plain', String(lead.id));
+          e.dataTransfer.effectAllowed = 'move';
+          // Small delay so the browser snapshot is taken before we fade the card
+          setTimeout(function() { card.classList.add('dragging'); }, 0);
+        });
+        card.addEventListener('dragend', function() {
+          card.classList.remove('dragging');
+        });
+        card.innerHTML = `
+          <div class="lead-card__header">
+            <p class="lead-card__name">${escapeHtml(lead.name)}</p>
+            <span class="lead-card__id">#${lead.id}</span>
+          </div>
 
-            <div class="lead-card__field">
-              <span class="lead-card__label">Phone</span>
-              <p class="lead-card__value">
-                <a href="tel:${escapeHtml(lead.phone)}">${escapeHtml(lead.phone)}</a>
-              </p>
-            </div>
+          <span class="lead-card__service">${escapeHtml(serviceLabel)}</span>
 
-            <div class="lead-card__field">
-              <span class="lead-card__label">Email</span>
-              <p class="lead-card__value">
-                <a href="mailto:${escapeHtml(lead.email)}">${escapeHtml(lead.email)}</a>
-              </p>
-            </div>
+          <div class="lead-card__field">
+            <span class="lead-card__label">Phone</span>
+            <p class="lead-card__value">
+              <a href="tel:${escapeHtml(lead.phone)}">${escapeHtml(lead.phone)}</a>
+            </p>
+          </div>
 
-            ${hasMessage ? `
-            <div class="lead-card__message">
-              <span class="lead-card__label">Message</span>
-              <p class="lead-card__value">${escapeHtml(lead.message)}</p>
-            </div>
-            ` : ''}
+          <div class="lead-card__field">
+            <span class="lead-card__label">Email</span>
+            <p class="lead-card__value">
+              <a href="mailto:${escapeHtml(lead.email)}">${escapeHtml(lead.email)}</a>
+            </p>
+          </div>
 
-            <p class="lead-card__date">Received: ${formatDate(lead.submitted_at)}</p>
+          ${hasMessage ? `
+          <div class="lead-card__message">
+            <span class="lead-card__label">Message</span>
+            <p class="lead-card__value">${escapeHtml(lead.message)}</p>
+          </div>` : ''}
+
+          <p class="lead-card__date">Received: ${formatDate(lead.submitted_at)}</p>
+
+          <div class="lead-card__notes">
+            <span class="lead-card__label">Notes</span>
+            <textarea class="notes-textarea" rows="2" placeholder="Add a note...">${escapeHtml(lead.notes || '')}</textarea>
+            <button class="notes-save-btn">Save note</button>
           </div>
         `;
-      }).join('');
+
+        /*
+          Attach the Save button listener here, right after setting innerHTML,
+          so we have a direct reference to the button and textarea elements.
+          We use querySelector on the card itself so we only get THIS card's elements.
+        */
+        const textarea = card.querySelector('.notes-textarea');
+        const saveBtn  = card.querySelector('.notes-save-btn');
+
+        /*
+          LEARNING: mousedown on the textarea fires before the drag starts.
+          Calling stopPropagation() prevents the event reaching the card,
+          which stops the browser from trying to drag the card when you
+          click into the textarea to type.
+        */
+        textarea.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+
+        saveBtn.addEventListener('click', function() {
+          saveBtn.textContent = 'Saving…';
+          saveBtn.disabled    = true;
+
+          fetch('/api/leads/' + lead.id, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-password': adminPassword
+            },
+            body: JSON.stringify({ notes: textarea.value })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function() {
+            saveBtn.textContent = 'Saved ✓';
+            saveBtn.classList.add('saved');
+            setTimeout(function() {
+              saveBtn.textContent = 'Save note';
+              saveBtn.classList.remove('saved');
+              saveBtn.disabled = false;
+            }, 1500);
+          })
+          .catch(function() {
+            saveBtn.textContent = 'Error — try again';
+            saveBtn.disabled = false;
+          });
+        });
+
+        cardsEl.appendChild(card);
+
+        // Increment this column's count badge
+        const countEl = document.getElementById('count-' + status);
+        countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+      });
+
+      // Recalculate stats now that all cards are placed
+      updateStats();
     }
 
     /*
@@ -521,6 +844,110 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
     }
+
+    /* ---- BOARD DRAG AND DROP ----
+       Sets up each column as a drop zone. Called once on page load
+       because the column elements are always in the DOM (just hidden).
+    */
+    function initBoard() {
+      COLUMNS.forEach(function(col) {
+        const columnEl = document.querySelector('.board__column[data-status="' + col.status + '"]');
+
+        /*
+          dragover fires continuously while a card hovers over the column.
+          Calling preventDefault() is required — without it, the browser
+          treats the column as "not droppable" and the drop event never fires.
+        */
+        columnEl.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          columnEl.classList.add('drag-over');
+        });
+
+        /*
+          dragleave fires when the mouse leaves the column — but it also fires
+          when you move over a *child* element inside the column (e.g. a card).
+          Checking relatedTarget lets us ignore those "false" leave events.
+        */
+        columnEl.addEventListener('dragleave', function(e) {
+          if (!columnEl.contains(e.relatedTarget)) {
+            columnEl.classList.remove('drag-over');
+          }
+        });
+
+        columnEl.addEventListener('drop', function(e) {
+          e.preventDefault();
+          columnEl.classList.remove('drag-over');
+
+          const leadId   = e.dataTransfer.getData('text/plain');
+          const card     = document.querySelector('.lead-card[data-id="' + leadId + '"]');
+          if (!card) return;
+
+          const newStatus = col.status;
+          const oldStatus = card.dataset.status;
+          if (oldStatus === newStatus) return; // dropped in same column — nothing to do
+
+          // Move the card element into the new column
+          const targetCards = document.getElementById('cards-' + newStatus);
+          targetCards.appendChild(card);
+          card.dataset.status = newStatus; // keep the stored status in sync
+
+          // Update both column count badges
+          const oldCountEl = document.getElementById('count-' + oldStatus);
+          const newCountEl = document.getElementById('count-' + newStatus);
+          oldCountEl.textContent = Math.max(0, parseInt(oldCountEl.textContent) - 1);
+          newCountEl.textContent = parseInt(newCountEl.textContent) + 1;
+
+          // Stats depend on the column counts, so recalculate now
+          updateStats();
+
+          // Persist the new status to the database
+          fetch('/api/leads/' + leadId, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-password': adminPassword
+            },
+            body: JSON.stringify({ status: newStatus })
+          }).catch(function(err) {
+            console.error('Failed to save lead status:', err);
+          });
+        });
+      });
+    }
+
+    // Set up drop zones immediately — the column HTML is always in the DOM
+    initBoard();
+
+    /* ---- UPDATE STATS ----
+       Reads the current column count badges (which stay in sync during
+       drag-and-drop) and recalculates all seven stat card values.
+       Call this any time the board state changes.
+    */
+    function updateStats() {
+      // Read the live count from each column's badge
+      const counts = {};
+      COLUMNS.forEach(function(col) {
+        counts[col.status] = parseInt(document.getElementById('count-' + col.status).textContent) || 0;
+      });
+
+      const total = COLUMNS.reduce(function(sum, col) { return sum + counts[col.status]; }, 0);
+      const won   = counts['won'] || 0;
+
+      /*
+        Conversion rate = won jobs / total jobs, as a percentage.
+        Guard against dividing by zero when there are no leads yet.
+      */
+      const rateText = total > 0 ? Math.round((won / total) * 100) + '%' : '—';
+
+      document.getElementById('stat-total').textContent     = total;
+      document.getElementById('stat-new-lead').textContent  = counts['new-lead']  || 0;
+      document.getElementById('stat-contacted').textContent = counts['contacted'] || 0;
+      document.getElementById('stat-quoted').textContent    = counts['quoted']    || 0;
+      document.getElementById('stat-won').textContent       = won;
+      document.getElementById('stat-lost').textContent      = counts['lost']      || 0;
+      document.getElementById('stat-rate').textContent      = rateText;
+    }
+
 
     /* ---- FETCH LEADS ----
        Makes the authenticated request to /api/leads.
