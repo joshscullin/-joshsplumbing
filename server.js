@@ -11,10 +11,12 @@
   Admin panel: http://localhost:3000/admin
 */
 
-const express    = require('express');
-const initSqlJs  = require('sql.js');
-const fs         = require('fs');
-const path       = require('path');
+const express     = require('express');
+const initSqlJs   = require('sql.js');
+const fs          = require('fs');
+const path        = require('path');
+const https       = require('https');       // Built-in Node.js — used to call Twilio's REST API
+const querystring = require('querystring'); // Built-in Node.js — converts JS objects to form-encoded strings
 
 /*
   LEARNING: dotenv reads your .env file and loads every line into
@@ -41,7 +43,13 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
   that dotenv loaded from .env. If the variable isn't set, this will be
   undefined — which is why the startup check below is important.
 */
-const DB_PATH        = path.join(__dirname, 'leads.db');
+const DB_PATH             = path.join(__dirname, 'leads.db');
+
+// Twilio credentials — loaded from .env
+const TWILIO_ACCOUNT_SID  = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_AUTH_TOKEN   = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER; // Josh's Twilio number (receives calls)
+const JOSH_PHONE_NUMBER   = process.env.JOSH_PHONE_NUMBER;   // Josh's real personal number (calls forwarded here)
 
 /*
   LEARNING: sql.js is a pure-JavaScript version of SQLite compiled to
@@ -74,6 +82,12 @@ if (!ADMIN_PASSWORD) {
     this code to know whether a process crashed or ended normally.
   */
 }
+
+// Same pattern — crash immediately with a clear message if Twilio config is missing
+if (!TWILIO_ACCOUNT_SID)  { console.error('ERROR: TWILIO_ACCOUNT_SID is not set. Add it to your .env file.');  process.exit(1); }
+if (!TWILIO_AUTH_TOKEN)   { console.error('ERROR: TWILIO_AUTH_TOKEN is not set. Add it to your .env file.');    process.exit(1); }
+if (!TWILIO_PHONE_NUMBER) { console.error('ERROR: TWILIO_PHONE_NUMBER is not set. Add it to your .env file.');  process.exit(1); }
+if (!JOSH_PHONE_NUMBER)   { console.error('ERROR: JOSH_PHONE_NUMBER is not set. Add it to your .env file.');    process.exit(1); }
 
 async function startServer() {
 
@@ -160,6 +174,73 @@ async function startServer() {
   }
 
 
+  /*
+    sendTwilioSMS() — sends an SMS via Twilio's REST API.
+
+    LEARNING: We're not using the Twilio npm package here. Instead we
+    use Node's built-in 'https' module to make a raw HTTP POST request
+    directly to Twilio's API — exactly what the package does internally,
+    but with no extra dependency to install.
+
+    Twilio's REST API for sending messages:
+      POST https://api.twilio.com/2010-04-01/Accounts/{SID}/Messages.json
+
+    Authentication is HTTP Basic Auth — a standard where you send
+    "username:password" encoded in base64 inside an Authorization header.
+    For Twilio: username = Account SID, password = Auth Token.
+
+    The function returns a Promise so callers can use 'await' on it.
+  */
+  function sendTwilioSMS(to, body) {
+    return new Promise((resolve, reject) => {
+      // querystring.stringify converts { To: '+1...', Body: 'Hi!' }
+      // into the string "To=%2B1...&Body=Hi%21" that Twilio's API expects
+      const postData = querystring.stringify({
+        To:   to,
+        From: TWILIO_PHONE_NUMBER,
+        Body: body
+      });
+
+      // HTTP Basic Auth: base64-encode "accountSid:authToken"
+      const auth = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64');
+
+      const options = {
+        hostname: 'api.twilio.com',
+        port:     443,
+        path:     `/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+        method:   'POST',
+        headers: {
+          'Authorization':  `Basic ${auth}`,
+          'Content-Type':   'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          if (res.statusCode === 201) {
+            console.log(`SMS sent to ${to}`);
+            resolve(data);
+          } else {
+            console.error(`Twilio SMS failed (${res.statusCode}): ${data}`);
+            reject(new Error(`Twilio API error: ${res.statusCode}`));
+          }
+        });
+      });
+
+      req.on('error', (err) => {
+        console.error('SMS request error:', err.message);
+        reject(err);
+      });
+
+      req.write(postData);
+      req.end();
+    });
+  }
+
+
   /* ================================================================
      EXPRESS APP
      ================================================================ */
@@ -167,7 +248,108 @@ async function startServer() {
   const app = express();
 
   app.use(express.json());
+  /*
+    LEARNING: Twilio sends webhook POST bodies as application/x-www-form-urlencoded
+    (the same format regular HTML form submissions use). Without this middleware,
+    req.body would be empty when Twilio hits our webhook routes.
+    express.urlencoded() parses that format and populates req.body for us.
+  */
+  app.use(express.urlencoded({ extended: false }));
   app.use(express.static(path.join(__dirname)));
+
+
+  /* ----------------------------------------------------------------
+     POST /webhook/incoming-call
+     Twilio calls this URL the moment someone dials Josh's Twilio number.
+
+     LEARNING: TwiML (Twilio Markup Language) is XML that tells Twilio
+     what to do with a phone call. We return it as a plain string and
+     set the Content-Type to text/xml so Twilio knows to read it as XML.
+
+     What this TwiML does:
+     - <Dial action="/webhook/call-status" timeout="20"> tries to
+       connect the incoming caller to JOSH_PHONE_NUMBER.
+     - timeout="20" means Twilio waits 20 seconds for Josh to pick up.
+     - action="/webhook/call-status" is a relative URL — Twilio will
+       POST the call result to that path on whichever domain it used
+       to reach this route (your ngrok URL). This means you don't have
+       to hardcode the ngrok URL anywhere in the code.
+     - If Josh picks up: normal conversation happens.
+     - If Josh doesn't pick up: Twilio hits /webhook/call-status next.
+     ---------------------------------------------------------------- */
+  app.post('/webhook/incoming-call', (req, res) => {
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Dial action="/webhook/call-status" timeout="20">
+    <Number>${JOSH_PHONE_NUMBER}</Number>
+  </Dial>
+</Response>`;
+
+    res.set('Content-Type', 'text/xml');
+    res.send(twiml);
+  });
+
+
+  /* ----------------------------------------------------------------
+     POST /webhook/call-status
+     Twilio hits this URL after the <Dial> attempt in /webhook/incoming-call
+     finishes — regardless of whether Josh answered or not.
+
+     Twilio includes these fields in the POST body:
+       DialCallStatus — what happened: completed, no-answer, busy, failed, canceled
+       From           — the original caller's phone number (e.g. +15551234567)
+
+     We only act when it's a missed-call status. If DialCallStatus is
+     'completed', Josh answered and we do nothing.
+     ---------------------------------------------------------------- */
+  app.post('/webhook/call-status', async (req, res) => {
+    const dialStatus  = req.body.DialCallStatus;
+    const callerPhone = req.body.From;
+
+    console.log(`Call status webhook — DialCallStatus: ${dialStatus}, From: ${callerPhone}`);
+
+    // These four statuses all mean Josh did not pick up
+    const MISSED_STATUSES = ['no-answer', 'busy', 'failed', 'canceled'];
+
+    if (MISSED_STATUSES.includes(dialStatus)) {
+
+      // 1. Save the caller as a new lead in the database.
+      //    We don't know their name or email from a phone call alone,
+      //    so we use placeholder values. Josh can edit notes in the admin panel.
+      db.run(
+        `INSERT INTO leads (name, phone, email, service, message, status)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          'Unknown Caller',          // name — unknown from a call
+          callerPhone,               // phone — provided by Twilio in E.164 format (+15551234567)
+          '',                        // email — unknown from a call (empty string satisfies NOT NULL)
+          'other',                   // service — closest valid type for an unknown inquiry
+          'Missed call via Twilio',  // message — explains how this lead was created
+          'new-lead'                 // status — start at the beginning of the pipeline
+        ]
+      );
+      saveToDisk();
+      console.log(`New lead saved from missed call: ${callerPhone}`);
+
+      // 2. Send an SMS back to the caller so they know Josh will follow up
+      const smsBody =
+        `Hi! We missed your call at Josh's Plumbing. We'll be in touch shortly. ` +
+        `Call us back at ${TWILIO_PHONE_NUMBER} if it's urgent.`;
+
+      try {
+        await sendTwilioSMS(callerPhone, smsBody);
+      } catch (err) {
+        // The lead is already saved — a failed SMS shouldn't stop the response.
+        // We log it so Josh can see it in the terminal, but we don't crash.
+        console.error('Failed to send SMS:', err.message);
+      }
+    }
+
+    // Twilio requires a valid TwiML response from every webhook, even status callbacks.
+    // An empty <Response> is fine — it just tells Twilio "nothing more to do."
+    res.set('Content-Type', 'text/xml');
+    res.send(`<?xml version="1.0" encoding="UTF-8"?><Response></Response>`);
+  });
 
 
   /* ----------------------------------------------------------------
